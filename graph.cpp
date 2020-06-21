@@ -68,7 +68,7 @@ void graph_class::print() const
 		{
 			std::cout << "Node " << v << " has neighbours: " << std::endl;
 			auto* current = this->edges[v];
-			while (current != nullptr)
+			while (current->number != 0)
 			{
 				std::cout << current->number << " (" << current->weight << ")" << std::endl;
 				current = current->next;
@@ -80,7 +80,7 @@ void graph_class::print() const
 auto init_vars(std::vector<bool>& discovered, std::vector<int>& distance, std::vector<int>& parent,
                const int graph_size) -> void
 {
-	for (auto i = 1; i < graph_size + 1; i++)
+	for (auto i = 0; i < graph_size + 1; i++)
 	{
 		discovered.push_back(false);
 		distance.push_back(std::numeric_limits<int>::max());
@@ -89,16 +89,17 @@ auto init_vars(std::vector<bool>& discovered, std::vector<int>& distance, std::v
 }
 
 auto dijkstra_algorithm(std::unique_ptr<graph_class>& g, std::vector<int> parent, std::vector<int> distance,
-                        int start) -> void
+                        int start) -> std::vector<int>
 {
 	std::vector<bool> discovered;
 
-	auto v_tmp = 0;
+	auto v_tmp = 1;
 
 	init_vars(discovered, distance, parent, g->node_number);
 
 	while (discovered[v_tmp] == false)
 	{
+		discovered[v_tmp] = true;
 		auto* tmp = g->edges[v_tmp];
 
 		while (tmp != nullptr)
@@ -122,15 +123,19 @@ auto dijkstra_algorithm(std::unique_ptr<graph_class>& g, std::vector<int> parent
 				smallest_distance = distance[i];
 			}
 		}
+		
 	}
+	return parent;
 }
 
-auto print_shortest_path(const int v, std::vector<int> parent, const int graph_number) -> void
+auto print_shortest_path(const int v, std::vector<int> parent, const int stop) -> void
 {
-	if (v > 0 && v < graph_number + 1 && parent[v] != -1)
+	std::cout << v; 
+	auto tmp = v;
+	while(tmp != stop)
 	{
-		std::cout << parent[v] << " ";
-		print_shortest_path(parent[v], parent, graph_number);
+		std::cout << "->" << parent[tmp];
+		tmp = parent[tmp];
 	}
 }
 
@@ -143,32 +148,4 @@ auto print_distances(const int start, std::vector<int> distance, const int graph
 			std::cout << "Shortest distance from " << start << "to" << i << "is: " << distance[i] << std::endl;
 		}
 	}
-}
-
-auto test_graph(void) -> void
-{
-	const auto node_number = 10;
-
-	std::unique_ptr<graph_class> my_graph(new graph_class(false, node_number));
-
-	std::vector<int> parent;
-	std::vector<int> distance;
-
-	const auto start = 1;
-
-	my_graph->insert_edge(1, 2, 6, false);
-	my_graph->insert_edge(1, 3, 2, false);
-	my_graph->insert_edge(3, 2, 5, false);
-	my_graph->insert_edge(3, 4, 1, false);
-	my_graph->insert_edge(2, 4, 3, false);
-	my_graph->insert_edge(4, 5, 2, false);
-
-	//Wykonaj algorytm Dijkstry
-	dijkstra_algorithm(my_graph, parent, distance, start);
-
-	//Wypisz najkrótszą ścieżkę z wierzchołka 1 do 5
-	print_shortest_path(5, parent, node_number);
-
-	//Wypisz dystanse od wierzchołka startowego do wszystkich innych.
-	print_distances(start, distance, node_number);
 }
